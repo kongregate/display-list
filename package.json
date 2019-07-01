@@ -1,0 +1,12 @@
+{
+    "name": "com.synapse-games.display-list",
+    "version": "0.1.0",
+    "displayName": "Display List",
+    "description": "Functionality for dynamically displaying data-driven lists of UI elements.",
+    "unity": "2018.3",
+    "author": {
+      "name": "David LeGare",
+      "email": "dlegare.1001@gmail.com",
+      "url": "https://randompoison.github.io"
+    }
+  }
