@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using UnityEngine;
 
 public class DynamicDisplayList : MonoBehaviour
@@ -27,14 +25,9 @@ public class DynamicDisplayList : MonoBehaviour
         get { return _invertedDirection; }
     }
 
-    public IEnumerable<Transform> ActiveElements
+    public IEnumerable<Transform> Elements
     {
-        get { return _elements.AsReadOnly().Where(element => element.gameObject.activeSelf); }
-    }
-
-    public ReadOnlyCollection<Transform> AllElements
-    {
-        get { return _elements.AsReadOnly(); }
+        get { return _elements; }
     }
 
     public Transform this[int key]
@@ -80,6 +73,17 @@ public class DynamicDisplayList : MonoBehaviour
             }
         }
 
+        return instance;
+    }
+
+    public T CreateAndAppendChild<T>(
+        T prefab,
+        bool setToIdentity = true,
+        Vector2? sizeDelta = null)
+    where T : Component
+    {
+        var instance = CreateChild(prefab, setToIdentity, sizeDelta);
+        AppendElement(instance.transform);
         return instance;
     }
 

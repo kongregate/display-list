@@ -1,36 +1,66 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 
-public abstract class DisplayList<T, U> : DynamicDisplayList where T : Component, IDisplayElement<U>
+/// <summary>
+/// Base class for managing a list of display elements based on a list of data objects.
+/// </summary>
+///
+/// <typeparam name="T">The type of the display element.</typeparam>
+/// <typeparam name="U">The type of the data element.</typeparam>
+///
+/// <remarks>
+/// <para>
+/// This is a specialized version of <see cref="DynamicDisplayList"/> for the case where
+/// you only have one type of data element that corresponds to one type of display element.
+/// To use it, create a new script that inherits from <see cref="DisplayList{T, U}"/>, and
+/// specify the display element type and data element type as the type parameters.
+/// </para>
+///
+/// <para>
+/// If you have a situation where you have multiple types of data objects (or multiple
+/// types of display elements) that you need to display in a single list, you should use
+/// <see cref="DynamicDisplayList"/> instead.
+/// </para>
+/// </remarks>
+public abstract class DisplayList<T, U> : DynamicDisplayList, IEnumerable<T> where T : Component, IDisplayElement<U>
 {
     [SerializeField]
+    [Tooltip("Prefab for the view element to be used in the list. A new instance of " +
+        "the prefab will be created for each list element.")]
     private T _elementPrefab = null;
 
     private List<U> _data = null;
     private List<T> _elements = new List<T>();
-    private int _activeCount = 0;
 
-    public new IEnumerable<T> ActiveElements
+    public new IEnumerable<T> Elements
     {
-        get { return _elements.Where(element => element.gameObject.activeSelf); }
+        get { return _elements.Take(Count); }
     }
 
-    public new ReadOnlyCollection<T> AllElements
+    public ReadOnlyCollection<T> AllElements
     {
         get { return _elements.AsReadOnly(); }
     }
 
+    /// <summary>
+    /// The number of active elements in the list.
+    /// </summary>
+    public int Count
+    {
+        get { return _data?.Count ?? 0; }
+    }
+
+    /// <summary>
+    /// The total number of elements that have been instantiated, including inactive
+    /// elements that are currently being pooled.
+    /// </summary>
     public int Capacity
     {
         get { return _elements.Count; }
-    }
-
-    public int Count
-    {
-        get { return _activeCount; }
     }
 
     public new T this[int key]
@@ -41,38 +71,43 @@ public abstract class DisplayList<T, U> : DynamicDisplayList where T : Component
     public void Populate(List<U> data)
     {
         _data = data ?? throw new ArgumentNullException();
-        _activeCount = _data.Count;
 
-        int index = 0;
-        for (; index < _data.Count; index += 1)
+        for (int index = 0; index < _data.Count; index += 1)
         {
             var element = GetOrAddElement(index);
             element.Populate(_data[index]);
         }
 
-        for (; index < _elements.Count; index++)
+        for (int index = _data.Count; index < _elements.Count; index += 1)
         {
             _elements[index].gameObject.SetActive(false);
         }
     }
 
-    #region Unity Lifecycle Methods
-    private void Awake()
+    public IEnumerator<T> GetEnumerator()
     {
-        _elementPrefab.gameObject.SetActive(false);
+        return Elements.GetEnumerator();
     }
-    #endregion
 
     private T GetOrAddElement(int index)
     {
+        // If there are additional elements that are currently unused, enable and
+        // return the first one.
         if (index < Capacity)
         {
-            return _elements[index];
+            var reusedElement = _elements[index];
+            reusedElement.gameObject.SetActive(true);
+            return reusedElement;
         }
 
+        // There are no pooled display elements, so create a new one and add it.
+        //
+        // TODO: This doesn't seem correct, given the signature of the function.
+        // It seems like this method should return the element at the specified index,
+        // so do we need to potentially create multiple new elements if the specified
+        // index is past the end of the list?
         var element = CreateElementInstance();
         _elements.Add(element);
-
         return element;
     }
 
@@ -92,4 +127,11 @@ public abstract class DisplayList<T, U> : DynamicDisplayList where T : Component
 
         return element;
     }
+
+    #region IEnumerator
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return Elements.GetEnumerator();
+    }
+    #endregion
 }
