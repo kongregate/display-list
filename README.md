@@ -74,7 +74,7 @@ To include display-list as a Unity package, you'll need Unity 2018.3 or later. O
 
 > NOTE: You'll need to have Git installed on your development machine for Unity to be able to download the dependency. See https://git-scm.com/ for more information.
 
-> NOTE: If you're using an older version of Unity, you can still use kongregate-web by copying the contents of `Plugins` into your project's `Plugins` folder.
+> NOTE: If you're using an older version of Unity, you can still use this package by copying the contents into your project's `Plugins` folder.
 
 If you're using [assembly definitions](https://docs.unity3d.com/Manual/ScriptCompilationAssemblyDefinitionFiles.html) for your project, you'll need to reference the `Unity.DisplayList.Runtime` assembly in order to access display-list.
 
