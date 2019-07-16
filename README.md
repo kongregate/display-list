@@ -91,13 +91,13 @@ There are two primary ways to use display-list:
 
 ### Complex Case
 
-Create a subclass of `DynamicDisplayList` and define a custom `Populate()` method. You'll have to manually implement any logic for deciding which view elements to instantiate from your data elements.
+Create a subclass of `DynamicDisplayList` and implement the `InstantiateElement()` method. You'll have to manually implement any logic for deciding which view elements to instantiate from your data elements, but `DynamicDisplayList` will take care of everything else.
 
 As an example, let's take a look at how we might display rewards from an in-game quest in a hero collector game. In practice, quests might be able to award a number of different types of items, but for our purposes let's say there are three reward types:
 
-* An item (represented by the `ItemRewardData`)
-* A specific hero
-* A random hero
+* An item, represented by `ItemRewardData`.
+* A specific hero, represented by `HeroRewardData`.
+* A random hero, represented by `RandomHeroReward`.
 
 In this case we have two display elements: A display element for item rewards, and a display element for hero rewards (which knows how to display both specific heroes and random heroes).
 
@@ -108,7 +108,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class QuestRewardDisplayList : DynamicDisplayList
+public class QuestRewardDisplayList : DynamicDisplayList<object>
 {
     [SerializeField]
     private ItemRewardDisplay ItemRewardPrefab;
@@ -116,41 +116,28 @@ public class QuestRewardDisplayList : DynamicDisplayList
     [SerializeField]
     private HeroRewardDisplay HeroRewardPrefab;
 
-    // Quests can reward both items and new heroes, so the Populate() method
-    // takes a list of untyped data, and uses different display elements based
+    // Quests can reward both items and new heroes, so the InstantiateElement()
+    // method takes an untyped item and uses different display elements based
     // on the type of the reward.
-    public void Populate(List<object> rewards)
+    public void InstantiateElement(object reward)
     {
-        // NOTE: You need to clear the list manually before re-populating it.
-        // The underlying DynamicDataList doesn't know about when the list is
-        // being populated, so you have to manage it yourself.
-        Clear();
-
-        // Iterate over the list of rewards, instantiating the appropriate
-        // prefab based on the type of the reward data.
-        foreach (var reward in rewards)
+        switch (reward)
         {
-            switch (reward)
-            {
-                case ItemRewardData itemReward:
-                    var itemRewardDisplay = CreateAndAppendChild(ItemRewardPrefab);
-                    itemRewardDisplay.Populate(itemReward);
-                    break;
+            case ItemRewardData itemReward:
+                CreateChild(ItemRewardPrefab).Populate(itemReward);
+                break;
 
-                case HeroRewardData heroReward:
-                    var heroRewardDisplay = CreateAndAppendChild(HeroRewardPrefab);
-                    heroRewardDisplay.Populate(heroReward);
-                    break;
+            case HeroRewardData heroReward:
+                CreateChild(HeroRewardPrefab).Populate(heroReward);
+                break;
 
-                case RandomHeroRewardData randomHeroReward:
-                    var randomUnitDisplay = CreateAndAppendChild(HeroRewardPrefab);
-                    randomUnitDisplay.Populate(randomHeroReward);
-                    break;
+            case RandomHeroRewardData randomHeroReward:
+                CreateChild(HeroRewardPrefab).Populate(randomHeroReward);
+                break;
 
-                default:
-                    throw new ArgumentException(
-                        $"Unknown reward data type {reward.GetType().Name}");
-            }
+            default:
+                throw new ArgumentException(
+                    $"Unknown reward data type {reward.GetType().Name}");
         }
     }
 }
@@ -158,7 +145,11 @@ public class QuestRewardDisplayList : DynamicDisplayList
 
 While this is less convenient than the simple case, it still provides a number of advantages over manually managing the list of elements:
 
-* Down-casting is centralized in the `Populate()` method of your display list, so the display elements can still work with strongly-typed data.
-* `DynamicDisplayList` handles the bulk of the work of manging the view elements at runtime.
+* Down-casting is centralized in the `InstantiateElement()` method of your display list, so the display elements can still work with strongly-typed data.
+* `DynamicDisplayList` handles the bulk of the work of manging the view elements at runtime, including pooling and recycling elements.
 * Boilerplate is minimal, and creating a new display list type is easy.
 * You still have complete control over the logic for instantiating your view elements, and can perform any custom logic necessary.
+
+### Custom Display Lists
+
+If `DynamicDisplayList` is still too constraining for your purposes, you can use subclass `BaseDisplayList` directly. This provides only minimal functionality for managing a list of view elements, but gives you the most flexibility and control.

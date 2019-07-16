@@ -9,12 +9,12 @@ using UnityEngine;
 /// Base class for managing a list of display elements based on a list of data objects.
 /// </summary>
 ///
-/// <typeparam name="T">The type of the display element.</typeparam>
-/// <typeparam name="U">The type of the data element.</typeparam>
+/// <typeparam name="V">The type of the display element.</typeparam>
+/// <typeparam name="D">The type of the data element.</typeparam>
 ///
 /// <remarks>
 /// <para>
-/// This is a specialized version of <see cref="DynamicDisplayList"/> for the case where
+/// This is a specialized type of display list for the case where
 /// you only have one type of data element that corresponds to one type of display element.
 /// To use it, create a new script that inherits from <see cref="DisplayList{T, U}"/>, and
 /// specify the display element type and data element type as the type parameters.
@@ -26,22 +26,22 @@ using UnityEngine;
 /// <see cref="DynamicDisplayList"/> instead.
 /// </para>
 /// </remarks>
-public abstract class DisplayList<T, U> : DynamicDisplayList, IEnumerable<T> where T : Component, IDisplayElement<U>
+public abstract class DisplayList<V, D> : BaseDisplayList, IEnumerable<V> where V : Component, IDisplayElement<D>
 {
     [SerializeField]
     [Tooltip("Prefab for the view element to be used in the list. A new instance of " +
         "the prefab will be created for each list element.")]
-    private T _elementPrefab = null;
+    private V _elementPrefab = null;
 
-    private List<U> _data = null;
-    private List<T> _elements = new List<T>();
+    private List<D> _data = null;
+    private List<V> _elements = new List<V>();
 
-    public new IEnumerable<T> Elements
+    public new IEnumerable<V> Elements
     {
         get { return _elements.Take(Count); }
     }
 
-    public ReadOnlyCollection<T> AllElements
+    public ReadOnlyCollection<V> AllElements
     {
         get { return _elements.AsReadOnly(); }
     }
@@ -63,12 +63,12 @@ public abstract class DisplayList<T, U> : DynamicDisplayList, IEnumerable<T> whe
         get { return _elements.Count; }
     }
 
-    public new T this[int key]
+    public new V this[int key]
     {
         get { return _elements[key]; }
     }
 
-    public void Populate(List<U> data)
+    public void Populate(List<D> data)
     {
         _data = data ?? throw new ArgumentNullException();
 
@@ -84,12 +84,12 @@ public abstract class DisplayList<T, U> : DynamicDisplayList, IEnumerable<T> whe
         }
     }
 
-    public IEnumerator<T> GetEnumerator()
+    public IEnumerator<V> GetEnumerator()
     {
         return Elements.GetEnumerator();
     }
 
-    private T GetOrAddElement(int index)
+    private V GetOrAddElement(int index)
     {
         // If there are additional elements that are currently unused, enable and
         // return the first one.
@@ -116,15 +116,10 @@ public abstract class DisplayList<T, U> : DynamicDisplayList, IEnumerable<T> whe
     /// </summary>
     ///
     /// <returns>The new element instance.</returns>
-    private T CreateElementInstance()
+    private V CreateElementInstance()
     {
         var element = CreateChild(_elementPrefab, true, Vector2.zero);
         element.gameObject.SetActive(true);
-        if (IsInverted)
-        {
-            element.transform.SetAsFirstSibling();
-        }
-
         return element;
     }
 
