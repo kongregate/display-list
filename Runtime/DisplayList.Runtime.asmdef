@@ -1,5 +1,5 @@
 {
-    "name": "Unity.DisplayList.Runtime",
+    "name": "DisplayList.Runtime",
     "references": [],
     "optionalUnityReferences": [],
     "includePlatforms": [],
