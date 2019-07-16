@@ -1,0 +1,16 @@
+{
+    "name": "Unity.DisplayList.Tests",
+    "references": [
+        "Unity.DisplayList.Runtime"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}
