@@ -14,7 +14,7 @@ using UnityEngine;
 ///
 /// <remarks>
 /// <para>
-/// This is a specialized version of <see cref="DynamicDisplayList"/> for the case where
+/// This is a specialized type of display list for the case where
 /// you only have one type of data element that corresponds to one type of display element.
 /// To use it, create a new script that inherits from <see cref="DisplayList{T, U}"/>, and
 /// specify the display element type and data element type as the type parameters.

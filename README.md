@@ -117,8 +117,8 @@ public class QuestRewardDisplayList : DynamicDisplayList<object>
     private HeroRewardDisplay HeroRewardPrefab;
 
     // Quests can reward both items and new heroes, so the InstantiateElement()
-    // method takes a list of untyped data, and uses different display elements
-    // based on the type of the reward.
+    // method takes an untyped item and uses different display elements based
+    // on the type of the reward.
     public void InstantiateElement(object reward)
     {
         switch (reward)
