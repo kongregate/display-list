@@ -21,7 +21,7 @@ public class NewDisplayListWindow : EditorWindow
     [MenuItem("Assets/Create/Display List")]
     public static void CreateDisplayList()
     {
-        EditorWindow.GetWindow<NewDisplayListWindow>();
+        _ = GetWindow<NewDisplayListWindow>();
     }
 
     private void OnGUI()
@@ -41,6 +41,7 @@ public class NewDisplayListWindow : EditorWindow
             File.WriteAllLines(
                 Path.Combine(Application.dataPath, $"{_className}.cs"),
                 scriptAsset);
+            AssetDatabase.Refresh();
 
             Close();
         }
