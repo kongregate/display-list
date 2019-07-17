@@ -74,9 +74,14 @@ public class NewDisplayListWindow : EditorWindow
     {
         _className = EditorGUILayout.TextField("Class Name", _className);
 
+        EditorGUILayout.BeginHorizontal();
+
+        EditorGUILayout.PrefixLabel("Display Element");
+
         var dropdownText = _selectedDisplayElement?.ToString() ?? "Select Display Element...";
-        var rect = GUILayoutUtility.GetRect(new GUIContent(dropdownText), EditorStyles.toolbarButton);
-        if (EditorGUILayout.DropdownButton(new GUIContent(dropdownText), FocusType.Keyboard))
+        var rect = GUILayoutUtility.GetRect(new GUIContent(dropdownText), EditorStyles.toolbarDropDown);
+        if (GUI.Button(rect, new GUIContent(dropdownText), EditorStyles.toolbarPopup))
+        //if (EditorGUILayout.DropdownButton(new GUIContent(dropdownText), FocusType.Keyboard))
         {
             var dropdown = new DisplayElementDropdown(_displayElementTypes, _dropdownState);
             dropdown.ElementSelected += selectedType =>
@@ -85,6 +90,8 @@ public class NewDisplayListWindow : EditorWindow
             };
             dropdown.Show(rect);
         }
+
+        EditorGUILayout.EndHorizontal();
 
         // Disable the "Create" button until the user has entered valid data for all
         // the fields.
