@@ -10,13 +10,15 @@ public class NewDisplayListWindow : EditorWindow
 {
     private readonly static Type DISPLAY_ELEMENT_TYPE = typeof(IDisplayElement<>);
 
-    private List<DisplayElementType> _displayElementTypes;
-    private string _className;
-    private DisplayElementType? _selectedDisplayElement;
-    private int? _selectedDataElement;
+    private List<DisplayElementType> _displayElementTypes = null;
+
+    private string _className = null;
+    private DisplayElementType? _selectedDisplayElement = null;
+    private Type _selectedDataElement = null;
 
 #if UNITY_2019
-    private AdvancedDropdownState _dropdownState;
+    private AdvancedDropdownState _displayDropdownState = new AdvancedDropdownState();
+    private AdvancedDropdownState _dataDropdownState = new AdvancedDropdownState();
 #endif
 
     private bool IsValid
@@ -25,7 +27,16 @@ public class NewDisplayListWindow : EditorWindow
         {
             return !string.IsNullOrEmpty(_className)
                 && _selectedDisplayElement.HasValue
-                && (_selectedDisplayElement.Value.DataTypes.Count == 1 || _selectedDataElement.HasValue);
+                && (_selectedDisplayElement.Value.DataTypes.Count == 1 || _selectedDataElement != null);
+        }
+    }
+
+    private bool NeedsToSelectDataElement
+    {
+        get
+        {
+            return _selectedDisplayElement.HasValue
+                && _selectedDisplayElement.Value.DataTypes.Count > 1;
         }
     }
 
@@ -79,8 +90,7 @@ public class NewDisplayListWindow : EditorWindow
             })
             .ToList();
 
-        var displayElements = _displayElementTypes.Select(type => $"{type.DisplayType.FullName} ({string.Join(", ", type.DataTypes.Select(dataType => dataType.FullName))})");
-        Debug.Log($"Found {_displayElementTypes.Count} display element types:\n{string.Join("\n", displayElements)}");
+        Debug.Log($"Found {_displayElementTypes.Count} display element types:\n{string.Join("\n  ", _displayElementTypes)}");
     }
 
     private void OnGUI()
@@ -91,13 +101,28 @@ public class NewDisplayListWindow : EditorWindow
 
         EditorGUILayout.PrefixLabel("Display Element");
 
-        var dropdownText = _selectedDisplayElement?.ToString() ?? "Select Display Element...";
+        var dropdownText = _selectedDisplayElement?.DisplayType.Name ?? "Select Display Element...";
         if (EditorGUILayout.DropdownButton(new GUIContent(dropdownText), FocusType.Keyboard))
         {
             ShowDisplayElementDropdown();
         }
 
         EditorGUILayout.EndHorizontal();
+
+        if (NeedsToSelectDataElement)
+        {
+            EditorGUILayout.BeginHorizontal();
+
+            EditorGUILayout.PrefixLabel("Data Element");
+
+            var dataDropdownText = _selectedDataElement?.Name ?? "Select Data Element...";
+            if (EditorGUILayout.DropdownButton(new GUIContent(dataDropdownText), FocusType.Keyboard))
+            {
+                ShowDataElementDropdown();
+            }
+
+            EditorGUILayout.EndHorizontal();
+        }
 
         // Disable the "Create" button until the user has entered valid data for all
         // the fields.
@@ -106,7 +131,7 @@ public class NewDisplayListWindow : EditorWindow
         if (GUILayout.Button("Create"))
         {
             var displayElement = _selectedDisplayElement.Value;
-            var dataType = displayElement.DataTypes[_selectedDataElement ?? 0];
+            var dataType = _selectedDataElement ?? displayElement.DataTypes[0];
 
             var outputPath = Path.Combine(FindSelectedDirectory(), $"{_className}.cs");
 
@@ -142,10 +167,22 @@ public class NewDisplayListWindow : EditorWindow
 #if UNITY_2019
     private void ShowDisplayElementDropdown()
     {
-        var dropdown = new DisplayElementDropdown(_displayElementTypes, _dropdownState);
+        var dropdown = new DisplayElementDropdown(_displayElementTypes, _displayDropdownState);
         dropdown.ElementSelected += selectedType =>
         {
             _selectedDisplayElement = selectedType;
+        };
+        dropdown.Show(GUILayoutUtility.GetLastRect());
+    }
+
+    private void ShowDataElementDropdown()
+    {
+        var dropdown = new DataElementDropdown(
+            _selectedDisplayElement.Value,
+            _dataDropdownState);
+        dropdown.ElementSelected += selectedType =>
+        {
+            _selectedDataElement = selectedType;
         };
         dropdown.Show(GUILayoutUtility.GetLastRect());
     }
@@ -163,6 +200,25 @@ public class NewDisplayListWindow : EditorWindow
                 () =>
                 {
                     _selectedDisplayElement = selectedElement;
+                });
+        }
+
+        menu.DropDown(GUILayoutUtility.GetLastRect());
+    }
+
+    private void ShowDataElementDropdown()
+    {
+        var menu = new GenericMenu();
+
+        foreach (var dataElement in _selectedDisplayElement.Value.DataTypes)
+        {
+            var selectedElement = dataElement;
+            menu.AddItem(
+                new GUIContent(dataElement.Name),
+                _selectedDataElement.Equals(selectedElement),
+                () =>
+                {
+                    _selectedDataElement = selectedElement;
                 });
         }
 
