@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
 public class NewDisplayListWindow : EditorWindow
@@ -13,6 +14,10 @@ public class NewDisplayListWindow : EditorWindow
     private string _className;
     private DisplayElementType? _selectedDisplayElement;
     private int? _selectedDataElement;
+
+#if UNITY_2019
+    private AdvancedDropdownState _dropdownState;
+#endif
 
     private bool IsValid
     {
@@ -76,21 +81,7 @@ public class NewDisplayListWindow : EditorWindow
         var dropdownText = _selectedDisplayElement?.ToString() ?? "Select Display Element...";
         if (EditorGUILayout.DropdownButton(new GUIContent(dropdownText), FocusType.Keyboard))
         {
-            var menu = new GenericMenu();
-
-            foreach (var displayElement in _displayElementTypes)
-            {
-                var selectedElement = displayElement;
-                menu.AddItem(
-                    new GUIContent(displayElement.ToString()),
-                    _selectedDisplayElement.Equals(displayElement),
-                    () =>
-                    {
-                        _selectedDisplayElement = selectedElement;
-                    });
-            }
-
-            menu.DropDown(GUILayoutUtility.GetLastRect());
+            ShowDisplayElementDropdown();
         }
 
         EditorGUILayout.EndHorizontal();
@@ -134,4 +125,35 @@ public class NewDisplayListWindow : EditorWindow
 
         return path;
     }
+
+#if UNITY_2019
+    private void ShowDisplayElementDropdown()
+    {
+        var dropdown = new DisplayElementDropdown(_displayElementTypes, _dropdownState);
+        dropdown.ElementSelected += selectedType =>
+        {
+            _selectedDisplayElement = selectedType;
+        };
+        dropdown.Show(GUILayoutUtility.GetLastRect());
+    }
+#else
+    private void ShowDisplayElementDropdown()
+    {
+        var menu = new GenericMenu();
+
+        foreach (var displayElement in _displayElementTypes)
+        {
+            var selectedElement = displayElement;
+            menu.AddItem(
+                new GUIContent(displayElement.ToString()),
+                _selectedDisplayElement.Equals(displayElement),
+                () =>
+                {
+                    _selectedDisplayElement = selectedElement;
+                });
+        }
+
+        menu.DropDown(GUILayoutUtility.GetLastRect());
+    }
+#endif
 }
