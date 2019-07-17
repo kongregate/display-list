@@ -39,25 +39,38 @@ public class NewDisplayListWindow : EditorWindow
 
     private void Awake()
     {
-
+        // Use reflection to find all of the display element types defined in
+        // the project.
         _displayElementTypes = AppDomain
             .CurrentDomain
+
+            // Find all the types in all of the assemblies in the app domain.
             .GetAssemblies()
             .SelectMany(assembly => assembly.GetTypes())
+
+            // Filter down to only types that implement IDisplayElement<>.
             .Where(type =>
             {
                 return type
                     .GetInterfaces()
                     .Where(iface => iface.IsGenericType)
-                    .Any(iface => DISPLAY_ELEMENT_TYPE.IsAssignableFrom(iface.GetGenericTypeDefinition()));
+                    .Select(iface => iface.GetGenericTypeDefinition())
+                    .Any(genericIface => DISPLAY_ELEMENT_TYPE.IsAssignableFrom(genericIface));
             })
+
+            // Get the list of all data elements implemented for each display element
+            // type. That is, if IDisplayElement<> is implemented multiple times for a
+            // given type, find all of the different generic parameters used.
             .Select(displayType =>
             {
                 var dataTypes = displayType
                     .GetInterfaces()
+                    .Where(iface => iface.IsGenericType)
+                    .Where(iface => DISPLAY_ELEMENT_TYPE.IsAssignableFrom(iface.GetGenericTypeDefinition()))
                     .Where(iface => iface.GetGenericTypeDefinition() == DISPLAY_ELEMENT_TYPE)
                     .Select(iface => iface.GetGenericArguments()[0])
                     .ToList();
+
                 return new DisplayElementType
                 {
                     DisplayType = displayType,
