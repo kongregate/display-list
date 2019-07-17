@@ -1,3 +1,17 @@
-﻿{
-	"name": "DisplayList.Editor"
+{
+    "name": "DisplayList.Editor",
+    "references": [
+        "GUID:c28cf30de25e00344b2b0e6d68075044"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
 }
