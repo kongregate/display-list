@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
 public class NewDisplayListWindow : EditorWindow
@@ -11,7 +10,6 @@ public class NewDisplayListWindow : EditorWindow
     private readonly static Type DISPLAY_ELEMENT_TYPE = typeof(IDisplayElement<>);
 
     private List<DisplayElementType> _displayElementTypes;
-    private AdvancedDropdownState _dropdownState;
     private string _className;
     private DisplayElementType? _selectedDisplayElement;
     private int? _selectedDataElement;
@@ -31,7 +29,7 @@ public class NewDisplayListWindow : EditorWindow
     {
         var window = ScriptableObject.CreateInstance<NewDisplayListWindow>();
         window.titleContent = new GUIContent("Create Display List Script");
-        window.ShowModalUtility();
+        window.ShowUtility();
     }
 
     private void Awake()
@@ -65,9 +63,6 @@ public class NewDisplayListWindow : EditorWindow
 
         var displayElements = _displayElementTypes.Select(type => $"{type.DisplayType.FullName} ({string.Join(", ", type.DataTypes.Select(dataType => dataType.FullName))})");
         Debug.Log($"Found {_displayElementTypes.Count} display element types:\n{string.Join("\n", displayElements)}");
-
-        // Initialize the dropdown for selecting the display list type.
-        _dropdownState = new AdvancedDropdownState();
     }
 
     private void OnGUI()
@@ -79,16 +74,23 @@ public class NewDisplayListWindow : EditorWindow
         EditorGUILayout.PrefixLabel("Display Element");
 
         var dropdownText = _selectedDisplayElement?.ToString() ?? "Select Display Element...";
-        var rect = GUILayoutUtility.GetRect(new GUIContent(dropdownText), EditorStyles.toolbarDropDown);
-        if (GUI.Button(rect, new GUIContent(dropdownText), EditorStyles.toolbarPopup))
-        //if (EditorGUILayout.DropdownButton(new GUIContent(dropdownText), FocusType.Keyboard))
+        if (EditorGUILayout.DropdownButton(new GUIContent(dropdownText), FocusType.Keyboard))
         {
-            var dropdown = new DisplayElementDropdown(_displayElementTypes, _dropdownState);
-            dropdown.ElementSelected += selectedType =>
+            var menu = new GenericMenu();
+
+            foreach (var displayElement in _displayElementTypes)
             {
-                _selectedDisplayElement = selectedType;
-            };
-            dropdown.Show(rect);
+                var selectedElement = displayElement;
+                menu.AddItem(
+                    new GUIContent(displayElement.ToString()),
+                    _selectedDisplayElement.Equals(displayElement),
+                    () =>
+                    {
+                        _selectedDisplayElement = selectedElement;
+                    });
+            }
+
+            menu.DropDown(GUILayoutUtility.GetLastRect());
         }
 
         EditorGUILayout.EndHorizontal();
