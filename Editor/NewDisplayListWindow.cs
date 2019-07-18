@@ -45,7 +45,7 @@ public class NewDisplayListWindow : EditorWindow
     {
         var window = ScriptableObject.CreateInstance<NewDisplayListWindow>();
         window.titleContent = new GUIContent("Create Display List Script");
-        window.ShowUtility();
+        window.ShowAuxWindow();
     }
 
     private void Awake()
