@@ -6,9 +6,9 @@ using UnityEditor.IMGUI.Controls;
 public class DisplayElementDropdown : AdvancedDropdown
 {
     private List<DisplayElementType> _displayTypes;
-    private Dictionary<int, DisplayElementType> _dropdownItemMap = new Dictionary<int, DisplayElementType>();
+    private Dictionary<int, (Type, Type)> _dropdownItemMap = new Dictionary<int, (Type, Type)>();
 
-    public event Action<DisplayElementType> ElementSelected;
+    public event Action<Type, Type> Selected;
 
     public DisplayElementDropdown(
         List<DisplayElementType> displayTypes,
@@ -24,9 +24,27 @@ public class DisplayElementDropdown : AdvancedDropdown
 
         foreach (var displayType in _displayTypes)
         {
-            var dropdownItem = new AdvancedDropdownItem(displayType.ToString());
-            root.AddChild(dropdownItem);
-            _dropdownItemMap.Add(dropdownItem.id, displayType);
+            AdvancedDropdownItem displayTypeItem;
+            if (displayType.DataTypes.Count > 1)
+            {
+                displayTypeItem = new AdvancedDropdownItem(displayType.DisplayType.Name);
+                foreach (var dataType in displayType.DataTypes)
+                {
+                    var dataTypeItem = new AdvancedDropdownItem(dataType.Name);
+                    displayTypeItem.AddChild(dataTypeItem);
+
+                    _dropdownItemMap.Add(dataTypeItem.id, (displayType.DisplayType, dataType));
+                }
+            }
+            else
+            {
+                displayTypeItem = new AdvancedDropdownItem(displayType.ToString());
+                _dropdownItemMap.Add(
+                    displayTypeItem.id,
+                    (displayType.DisplayType, displayType.DataTypes[0]));
+            }
+
+            root.AddChild(displayTypeItem);
         }
 
         return root;
@@ -34,8 +52,8 @@ public class DisplayElementDropdown : AdvancedDropdown
 
     protected override void ItemSelected(AdvancedDropdownItem item)
     {
-        var selectedType = _dropdownItemMap[item.id];
-        ElementSelected?.Invoke(selectedType);
+        var (displayType, dataType) = _dropdownItemMap[item.id];
+        Selected?.Invoke(displayType, dataType);
     }
 }
 #endif
