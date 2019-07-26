@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -60,6 +60,11 @@ namespace DisplayList
         /// The total number of elements that have been instantiated, including inactive
         /// elements that are currently being pooled.
         /// </summary>
+        ///
+        /// <remarks>
+        /// This represents the number of elements that can be added to the list before
+        /// new display elements will need to be instantiated.
+        /// </remarks>
         public int Capacity
         {
             get { return _elements.Count; }
@@ -70,14 +75,62 @@ namespace DisplayList
             get { return _elements[key]; }
         }
 
+        /// <summary>
+        /// Indicates that a new display element was instantiated and added to the pool
+        /// of available elements.
+        /// </summary>
+        ///
+        /// <remarks>
+        /// This will only be raised once for each display element that was created. It
+        /// can be used to perform any one-time setup that needs to be done with the
+        /// display elements, such as registering callbacks.
+        /// </remarks>
+        public event Action<V> ElementInstantiated;
+
+        /// <summary>
+        /// Indicates that a display element has been added to the list.
+        /// </summary>
+        ///
+        /// <remarks>
+        /// This is guaranteed to be raised every time an element is logically added to
+        /// the list, even in cases where the game object was never really removed from
+        /// the list. This specifically applies to the case where you re-populate a list
+        /// and existing display elements are reused. In this case the element added
+        /// event will be raised for any existing elements that are in the list, as well
+        /// as any new elements that are instantiated.
+        /// </remarks>
+        public event Action<V> ElementAdded;
+
+        /// <summary>
+        /// Indicates that a display element has been removed from the list.
+        /// </summary>
+        ///
+        /// <remarks>
+        /// This is guaranteed to be raised every time an element is logically removed
+        /// from the list, even in cases where the game object was never really removed.
+        /// This specifically applies to the cases where you re-populate a list and
+        /// existing display elements are reused. In this case the element removed event
+        /// will be raised for any existing elements that are in the list before the new
+        /// list of elements is populated.
+        /// </remarks>
+        public event Action<V> ElementRemoved;
+
         public void Populate(List<D> data)
         {
             _data = data ?? throw new ArgumentNullException();
+
+            // "Remove" all active elements.
+            foreach (var element in this)
+            {
+                ElementRemoved?.Invoke(element);
+            }
 
             for (int index = 0; index < _data.Count; index += 1)
             {
                 var element = GetOrAddElement(index);
                 element.Populate(_data[index]);
+
+                ElementAdded?.Invoke(element);
             }
 
             for (int index = _data.Count; index < _elements.Count; index += 1)
