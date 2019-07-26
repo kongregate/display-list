@@ -83,19 +83,11 @@ public class NewDisplayListWindow : EditorWindow
     {
         _className = EditorGUILayout.TextField("Class Name", _className);
 
-        EditorGUILayout.BeginHorizontal();
-
-        EditorGUILayout.PrefixLabel("Display Element");
 
         var dropdownText = _selectedDisplayType != null
             ? $"{_selectedDataType.Name} ({_selectedDataType.Name})"
-            : "Select Display Element...";
-        if (EditorGUILayout.DropdownButton(new GUIContent(dropdownText), FocusType.Keyboard))
-        {
-            ShowDisplayElementDropdown();
-        }
-
-        EditorGUILayout.EndHorizontal();
+            : null;
+        ShowDisplayElementDropdown(dropdownText);
 
         // Disable the "Create" button until the user has entered valid data for all
         // the fields.
@@ -134,56 +126,83 @@ public class NewDisplayListWindow : EditorWindow
         return path;
     }
 
-#if UNITY_2019 && false
-    private void ShowDisplayElementDropdown()
+#if UNITY_2019
+    private void ShowDisplayElementDropdown(string text)
     {
-        var dropdown = new DisplayElementDropdown(_displayElementTypes, _displayDropdownState);
-        dropdown.Selected += (displayType, dataType) =>
+        GUILayout.BeginHorizontal();
+
+        string buttonText;
+        if (!string.IsNullOrEmpty(text))
         {
-            _selectedDisplayType = displayType;
-            _selectedDataType = dataType;
-        };
-        dropdown.Show(GUILayoutUtility.GetLastRect());
+            EditorGUILayout.LabelField(text);
+            buttonText = "Select";
+        }
+        else
+        {
+            buttonText = "Select Display Element...";
+        }
+
+        if (EditorGUILayout.DropdownButton(new GUIContent(buttonText), FocusType.Keyboard))
+        {
+            var dropdownRect = GUILayoutUtility.GetLastRect();
+            var dropdown = new DisplayElementDropdown(_displayElementTypes, _displayDropdownState);
+            dropdown.Selected += (displayType, dataType) =>
+            {
+                _selectedDisplayType = displayType;
+                _selectedDataType = dataType;
+            };
+            dropdown.Show(dropdownRect);
+        }
+
+        GUILayout.EndHorizontal();
     }
 #else
-    private void ShowDisplayElementDropdown()
+    private void ShowDisplayElementDropdown(string text)
     {
-        var menu = new GenericMenu();
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.PrefixLabel("Display Element");
 
-        foreach (var displayType in _displayElementTypes)
+        if (EditorGUILayout.DropdownButton(new GUIContent(text), FocusType.Keyboard))
         {
-            if (displayType.DataTypes.Count > 1)
+            var menu = new GenericMenu();
+
+            foreach (var displayType in _displayElementTypes)
             {
-                foreach (var dataType in displayType.DataTypes)
+                if (displayType.DataTypes.Count > 1)
                 {
-                    var itemPath = $"{displayType.DisplayType.Name}/{dataType.Name}";
-                    var isActive = displayType.DisplayType.Equals(_selectedDisplayType)
-                        && dataType.Equals(_selectedDataType);
+                    foreach (var dataType in displayType.DataTypes)
+                    {
+                        var itemPath = $"{displayType.DisplayType.Name}/{dataType.Name}";
+                        var isActive = displayType.DisplayType.Equals(_selectedDisplayType)
+                            && dataType.Equals(_selectedDataType);
+                        menu.AddItem(
+                            new GUIContent(itemPath),
+                            isActive,
+                            () =>
+                            {
+                                _selectedDisplayType = displayType.DisplayType;
+                                _selectedDataType = dataType;
+                            });
+                    }
+                }
+                else
+                {
                     menu.AddItem(
-                        new GUIContent(itemPath),
-                        isActive,
+                        new GUIContent(displayType.ToString()),
+                        displayType.DisplayType.Equals(_selectedDisplayType),
                         () =>
                         {
                             _selectedDisplayType = displayType.DisplayType;
-                            _selectedDataType = dataType;
+                            _selectedDataType = displayType.DataTypes[0];
                         });
                 }
-            }
-            else
-            {
-                menu.AddItem(
-                    new GUIContent(displayType.ToString()),
-                    displayType.DisplayType.Equals(_selectedDisplayType),
-                    () =>
-                    {
-                        _selectedDisplayType = displayType.DisplayType;
-                        _selectedDataType = displayType.DataTypes[0];
-                    });
+
             }
 
+            menu.DropDown(GUILayoutUtility.GetLastRect());
         }
 
-        menu.DropDown(GUILayoutUtility.GetLastRect());
+        EditorGUILayout.EndHorizontal();
     }
 #endif
 }
