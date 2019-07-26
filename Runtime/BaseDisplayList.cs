@@ -2,136 +2,140 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class BaseDisplayList : MonoBehaviour
+namespace DisplayList
 {
-    [SerializeField]
-    private Transform _root = null;
-
-    private List<Transform> _rawElements = new List<Transform>();
-
-    public Transform Root
+    public abstract class BaseDisplayList : MonoBehaviour
     {
-        get { return _root; }
-    }
+        [SerializeField]
+        private Transform _root = null;
 
-    public IEnumerable<Transform> Elements
-    {
-        get { return _rawElements; }
-    }
+        private List<Transform> _rawElements = new List<Transform>();
 
-    public Transform this[int key]
-    {
-        get { return _rawElements[key]; }
-    }
-
-    public void Clear()
-    {
-        foreach (var element in _rawElements)
+        public Transform Root
         {
-            Destroy(element.gameObject);
-        }
-        _rawElements.Clear();
-    }
-
-    public T CreateChild<T>(
-        T prefab,
-        bool setToIdentity = true,
-        Vector2? sizeDelta = null)
-    where T : Component
-    {
-        var instance = Instantiate(prefab, _root);
-
-        var t = instance.transform;
-        if (setToIdentity)
-        {
-            t.localPosition = Vector3.zero;
-            t.localRotation = Quaternion.identity;
-            t.localScale = Vector3.one;
+            get { return _root; }
         }
 
-        if (t is RectTransform rect)
+        public IEnumerable<Transform> Elements
         {
+            get { return _rawElements; }
+        }
+
+        public Transform this[int key]
+        {
+            get { return _rawElements[key]; }
+        }
+
+        public void Clear()
+        {
+            foreach (var element in _rawElements)
+            {
+                Destroy(element.gameObject);
+            }
+            _rawElements.Clear();
+        }
+
+        public T CreateChild<T>(
+            T prefab,
+            bool setToIdentity = true,
+            Vector2? sizeDelta = null)
+        where T : Component
+        {
+            var instance = Instantiate(prefab, _root);
+
+            var t = instance.transform;
             if (setToIdentity)
             {
-                rect.anchoredPosition = Vector2.zero;
+                t.localPosition = Vector3.zero;
+                t.localRotation = Quaternion.identity;
+                t.localScale = Vector3.one;
             }
 
-            if (sizeDelta.HasValue)
+            if (t is RectTransform rect)
             {
-                rect.sizeDelta = sizeDelta.Value;
+                if (setToIdentity)
+                {
+                    rect.anchoredPosition = Vector2.zero;
+                }
+
+                if (sizeDelta.HasValue)
+                {
+                    rect.sizeDelta = sizeDelta.Value;
+                }
             }
+
+            AppendElement(instance.transform);
+
+            return instance;
         }
 
-        AppendElement(instance.transform);
-
-        return instance;
-    }
-
-    public void AppendElement(Transform element)
-    {
-        _rawElements.Add(element);
-        element.gameObject.SetActive(true);
-    }
-
-    /// <summary>
-    /// Inserts the given element at the specified index.
-    /// </summary>
-    ///
-    /// <param name="index"></param>
-    /// <param name="element"></param>
-    ///
-    /// <exception cref="ArgumentOutOfRangeException">
-    /// <paramref name="index"/> is less than 0, or <paramref name="index"/> is greater than Count.
-    /// </exception>
-    public void Insert(int index, Transform element)
-    {
-        if (index < 0 || index > _rawElements.Count)
+        public void AppendElement(Transform element)
         {
-            throw new ArgumentOutOfRangeException();
-        }
-
-        if (index == _rawElements.Count)
-        {
-            AppendElement(element);
-            return;
-        }
-
-        element.SetSiblingIndex(index);
-        _rawElements.Insert(index, element);
-
-        if (element == null)
-        {
-            Debug.LogError(
-                $"Element could not be inserted into List {_root.name} at {index}, " +
-                $"Data: {element}");
-        }
-        else
-        {
+            _rawElements.Add(element);
             element.gameObject.SetActive(true);
         }
-    }
 
-    public bool RemoveAt(int index)
-    {
-        if (index < 0 || index >= _rawElements.Count)
+        /// <summary>
+        /// Inserts the given element at the specified index.
+        /// </summary>
+        ///
+        /// <param name="index"></param>
+        /// <param name="element"></param>
+        ///
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="index"/> is less than 0, or <paramref name="index"/> is greater than Count.
+        /// </exception>
+        public void Insert(int index, Transform element)
         {
-            return false;
+            if (index < 0 || index > _rawElements.Count)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            if (index == _rawElements.Count)
+            {
+                AppendElement(element);
+                return;
+            }
+
+            element.SetSiblingIndex(index);
+            _rawElements.Insert(index, element);
+
+            if (element == null)
+            {
+                Debug.LogError(
+                    $"Element could not be inserted into List {_root.name} at {index}, " +
+                    $"Data: {element}");
+            }
+            else
+            {
+                element.gameObject.SetActive(true);
+            }
         }
 
-        var element = _rawElements[index];
-        _rawElements.RemoveAt(index);
-        element.gameObject.transform.SetSiblingIndex(_rawElements.Count);
-        element.gameObject.SetActive(false);
+        public bool RemoveAt(int index)
+        {
+            if (index < 0 || index >= _rawElements.Count)
+            {
+                return false;
+            }
 
-        _rawElements.Add(element);
+            var element = _rawElements[index];
+            _rawElements.RemoveAt(index);
+            element.gameObject.transform.SetSiblingIndex(_rawElements.Count);
+            element.gameObject.SetActive(false);
 
-        return true;
+            _rawElements.Add(element);
+
+            return true;
+        }
+
+        #region Unity Lifecycle Methods
+        private void Reset()
+        {
+            _root = transform;
+        }
+        #endregion
     }
 
-    #region Unity Lifecycle Methods
-    private void Reset()
-    {
-        _root = transform;
-    }
-    #endregion
 }

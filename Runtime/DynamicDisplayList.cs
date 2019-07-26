@@ -1,28 +1,30 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using UnityEngine;
 
-public abstract class DynamicDisplayList<D> : BaseDisplayList
+namespace DisplayList
 {
-    private List<D> _data = null;
-
-    public ReadOnlyCollection<D> Data
+    public abstract class DynamicDisplayList<D> : BaseDisplayList
     {
-        get { return _data.AsReadOnly(); }
-    }
+        private List<D> _data = null;
 
-    public virtual void Populate(List<D> data)
-    {
-        _data = data ?? throw new ArgumentNullException("data parameter must not be null");
-
-        Clear();
-
-        foreach (var dataElement in _data)
+        public ReadOnlyCollection<D> Data
         {
-            InstantiateElement(dataElement);
+            get { return _data.AsReadOnly(); }
         }
-    }
 
-    protected abstract void InstantiateElement(D data);
+        public virtual void Populate(List<D> data)
+        {
+            _data = data ?? throw new ArgumentNullException("data parameter must not be null");
+
+            Clear();
+
+            foreach (var dataElement in _data)
+            {
+                InstantiateElement(dataElement);
+            }
+        }
+
+        protected abstract void InstantiateElement(D data);
+    }
 }
