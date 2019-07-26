@@ -175,6 +175,10 @@ namespace DisplayList
         {
             var element = CreateChild(_elementPrefab, true, Vector2.zero);
             element.gameObject.SetActive(true);
+
+            // Notify listeners that a new element was instantiated.
+            ElementInstantiated?.Invoke(element);
+
             return element;
         }
 
