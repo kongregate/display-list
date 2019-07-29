@@ -38,6 +38,8 @@ public class MyElement : MonoBehaviour, IDisplayElement<MyData>
 // Create a specialized subclass of DisplayList for your data type.
 public class MyDisplayList : DisplayList<MyElement, MyData> { }
 
+// MyGameLogic.cs
+//
 // Use your specialized display list to display data in your game.
 public class MyGameLogic : MonoBehaviour
 {
@@ -152,4 +154,6 @@ While this is less convenient than the simple case, it still provides a number o
 
 ### Custom Display Lists
 
-If `DynamicDisplayList` is still too constraining for your purposes, you can use subclass `BaseDisplayList` directly. This provides only minimal functionality for managing a list of view elements, but gives you the most flexibility and control.
+If `DynamicDisplayList` is still too constraining for your purposes, you can create a direct subclass of `BaseDisplayList`. This provides only minimal functionality for managing a list of view elements, but gives you the most flexibility and control.
+
+> TODO: Provide more documentation on what functionality `BaseDisplayList` provides and how to use it correctly.
