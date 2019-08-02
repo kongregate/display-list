@@ -28,7 +28,8 @@ namespace DisplayList
     /// <see cref="DynamicDisplayList"/> instead.
     /// </para>
     /// </remarks>
-    public abstract class DisplayList<V, D> : BaseDisplayList, IEnumerable<V> where V : Component, IDisplayElement<D>
+    public abstract class DisplayList<V, D> : BaseDisplayList, IEnumerable<V>
+        where V : Component, IDisplayElement<D>
     {
         [SerializeField]
         [Tooltip("Prefab for the view element to be used in the list. A new instance of " +
@@ -126,6 +127,7 @@ namespace DisplayList
                 ElementRemoved?.Invoke(element);
             }
 
+            // Add a display element for every data element in the list.
             for (int index = 0; index < _data.Count; index += 1)
             {
                 var element = GetOrAddElement(index);
@@ -135,13 +137,29 @@ namespace DisplayList
                 ElementAdded?.Invoke(element);
             }
 
+            // Disable any leftover display elements that were previously active in the
+            // list but are no longer needed.
             for (int index = _data.Count; index < _elements.Count; index += 1)
             {
                 _elements[index].gameObject.SetActive(false);
             }
+
+            OnPopulated();
         }
 
         #region Virtual Lifecycle Methods
+        /// <summary>
+        /// Called when the list has been populated (both the first time and on any later
+        /// re-populations).
+        /// </summary>
+        ///
+        /// <remarks>
+        /// This is a lifecycle method that custom subclasses can override in order to
+        /// add custom behavior to the display list. It will be called after the list
+        /// has finished populating.
+        /// </remarks>
+        protected virtual void OnPopulated() { }
+
         /// <summary>
         /// Called when a new list element is first intantiated.
         /// </summary>
