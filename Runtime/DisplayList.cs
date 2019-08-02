@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -122,6 +122,7 @@ namespace DisplayList
             // "Remove" all active elements.
             foreach (var element in this)
             {
+                OnElementRemoved(element);
                 ElementRemoved?.Invoke(element);
             }
 
@@ -130,6 +131,7 @@ namespace DisplayList
                 var element = GetOrAddElement(index);
                 element.Populate(_data[index]);
 
+                OnElementAdded(element);
                 ElementAdded?.Invoke(element);
             }
 
@@ -139,10 +141,64 @@ namespace DisplayList
             }
         }
 
-        public IEnumerator<V> GetEnumerator()
-        {
-            return Elements.GetEnumerator();
-        }
+        #region Virtual Lifecycle Methods
+        /// <summary>
+        /// Called when a new list element is first intantiated.
+        /// </summary>
+        ///
+        /// <param name="element">The new element that was instantiated.</param>
+        ///
+        /// <remarks>
+        /// This is a lifecycle method that custom subclasses can override in order to
+        /// add custom behavior to the display list. It will be called immediately before
+        /// the <see cref="ElementInstantiated"/> event is raised.
+        /// </remarks>
+        protected virtual void OnElementInstantiated(V element) { }
+
+        /// <summary>
+        /// Called when a display element is logically added to the list.
+        /// </summary>
+        ///
+        /// <param name="element">The element that was added to the list.</param>
+        ///
+        /// <remarks>
+        /// <para>
+        /// This is a lifecycle method that custom subclasses can override in order to
+        /// add custom behavior to the display list. It will be called immediately before
+        /// the <see cref="ElementAdded"/> event is raised.
+        /// </para>
+        ///
+        /// <para>
+        /// Note that, due to how list elements are pooled and reused, an element may not
+        /// have been literally removed from the list before this method is called.
+        /// <see cref="OnElementRemoved(V)"/> will always be called before this method is
+        /// called again, though.
+        /// </para>
+        /// </remarks>
+        protected virtual void OnElementAdded(V element) { }
+
+        /// <summary>
+        /// Called when a display element is logically removed from the list.
+        /// </summary>
+        ///
+        /// <param name="element">The element that was removed from the list.</param>
+        ///
+        /// <remarks>
+        /// <para>
+        /// This is a lifecycle method that custom subclasses can override in order to
+        /// add custom behavior to the display list. It will be called immediately before
+        /// the <see cref="ElementRemoved"/> event is raised.
+        /// </para>
+        ///
+        /// <para>
+        /// Note that, due to how list elements are pooled and reused, an element may not
+        /// have literally been removed from the list before this method is called.
+        /// <see cref="OnElementAdded(V)"/> will always be called before this method is
+        /// called again, though.
+        /// </para>
+        /// </remarks>
+        protected virtual void OnElementRemoved(V element) { }
+        #endregion
 
         private V GetOrAddElement(int index)
         {
@@ -177,12 +233,18 @@ namespace DisplayList
             element.gameObject.SetActive(true);
 
             // Notify listeners that a new element was instantiated.
+            OnElementInstantiated(element);
             ElementInstantiated?.Invoke(element);
 
             return element;
         }
 
         #region IEnumerator
+        public IEnumerator<V> GetEnumerator()
+        {
+            return Elements.GetEnumerator();
+        }
+
         IEnumerator IEnumerable.GetEnumerator()
         {
             return Elements.GetEnumerator();
