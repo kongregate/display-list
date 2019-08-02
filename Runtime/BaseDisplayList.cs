@@ -131,7 +131,7 @@ namespace DisplayList
         }
 
         #region Unity Lifecycle Methods
-        private void Reset()
+        protected virtual void Reset()
         {
             _root = transform;
         }
