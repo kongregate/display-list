@@ -39,15 +39,15 @@ namespace DisplayList
         private List<D> _data = null;
         private List<V> _elements = new List<V>();
 
-        public new IEnumerable<V> Elements
-        {
-            get { return _elements.Take(Count); }
-        }
+        /// <summary>
+        /// The active display elements in the list.
+        /// </summary>
+        public new IEnumerable<V> Elements => _elements.Take(Count);
 
-        public ReadOnlyCollection<V> AllElements
-        {
-            get { return _elements.AsReadOnly(); }
-        }
+        /// <summary>
+        /// The underlying list of data elements.
+        /// </summary>
+        public ReadOnlyCollection<D> Data => _data.AsReadOnly();
 
         /// <summary>
         /// The number of active elements in the list.
@@ -116,6 +116,19 @@ namespace DisplayList
         /// </remarks>
         public event Action<V> ElementRemoved;
 
+        /// <summary>
+        /// Populates the display list with the provided data elements.
+        /// </summary>
+        ///
+        /// <param name="data">The data to use when populating the list.</param>
+        ///
+        /// <remarks>
+        /// Any existing view elements will be removed from the list before populating
+        /// the list with <paramref name="data"/>. One display element is added for each
+        /// element in <paramref name="data"/>, and the display element is automatically
+        /// populated with the corresponding data element. Any existing display elements
+        /// will be reused in order to reduce object instantiation costs.
+        /// </remarks>
         public void Populate(List<D> data)
         {
             _data = data ?? throw new ArgumentNullException();
