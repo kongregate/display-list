@@ -57,7 +57,7 @@ public class MyGameLogic : MonoBehaviour
         };
 
         // Populate the display list with your data.
-        _displayList.Populate(DISPLAY_DATA);
+        _displayList.Populate(dataToDisplay);
     }
 }
 ```
