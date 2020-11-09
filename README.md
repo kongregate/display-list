@@ -64,7 +64,15 @@ public class MyGameLogic : MonoBehaviour
 
 ## Setup
 
-To include display-list as a Unity package, you'll need Unity 2018.3 or later. Open `Packages/manifest.json` in your project and add "com.synapse-games.display-list" to the `dependencies` object:
+To include display-list as a Unity package, you'll need to be on Unity 2018.3 or later. display-list is [hosted on OpenUPM](https://openupm.com/packages/com.synapse-games.display-list/). Follow the [OpenUPM getting started guide](https://openupm.com/docs/getting-started.html) if you're not already using it, then run the following command from within your Unity project:
+
+```text
+openupm add com.synapse-games.display-list
+```
+
+### Alternate Setup (Git)
+
+If you'd prefer to add display-list to your project directly through GitHub, open `Packages/manifest.json` in your project and add "com.synapse-games.display-list" to the `dependencies` object:
 
 ```json
 {
@@ -76,7 +84,7 @@ To include display-list as a Unity package, you'll need Unity 2018.3 or later. O
 
 > NOTE: You'll need to have Git installed on your development machine for Unity to be able to download the dependency. See https://git-scm.com/ for more information.
 
-> NOTE: If you're using an older version of Unity, you can still use this package by copying the contents into your project's `Plugins` folder.
+### Custom Assemblies
 
 If you're using [assembly definitions](https://docs.unity3d.com/Manual/ScriptCompilationAssemblyDefinitionFiles.html) for your project, you'll need to reference the `Unity.DisplayList.Runtime` assembly in order to access display-list.
 
