@@ -1,0 +1,68 @@
+name: Build and Test
+
+on:
+  pull_request: {}
+  push: { branches: [master] }
+
+jobs:
+  buildAndTest:
+    name: Test against ${{ matrix.unityVersion }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        unityVersion:
+          - 2019.3.11f1
+          - 2018.4.22f1
+        include:
+          - unityVersion: 2018.4.22f1
+            projectPath: test-project-2018.4
+            licenseSecret: UNITY_LICENSE_2018_4
+          - unityVersion: 2019.3.11f1
+            projectPath: test-project-2019.3
+            licenseSecret: UNITY_LICENSE_2019_3
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+
+      - name: Run tests
+        uses: webbertakken/unity-test-runner@v1.3
+        with:
+          projectPath: ${{ matrix.projectPath }}
+          unityVersion: ${{ matrix.unityVersion }}
+        env:
+          UNITY_LICENSE: ${{ secrets[matrix.licenseSecret] }}
+
+      - name: Build project
+        uses: webbertakken/unity-builder@v0.10
+        with:
+          projectPath: ${{ matrix.projectPath }}
+          unityVersion: ${{ matrix.unityVersion }}
+          targetPlatform: WebGL
+        env:
+          UNITY_LICENSE: ${{ secrets[matrix.licenseSecret] }}
+
+  buildDocs:
+    name: Build and publish documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+
+      - name: Build documentation
+        uses: nikeee/docfx-action@master
+        with:
+          args: docs/docfx.json
+
+      - name: Publish to GitHub Pages
+        uses: maxheld83/ghpages@v0.3.0
+        env:
+          BUILD_DIR: docs/_site
+          GH_PAT: ${{ secrets.GH_PAT }}
