@@ -30,7 +30,7 @@ jobs:
           lfs: true
 
       - name: Run tests
-        uses: webbertakken/unity-test-runner@v1
+        uses: webbertakken/unity-test-runner@v1.7
         with:
           projectPath: ${{ matrix.projectPath }}
           unityVersion: ${{ matrix.unityVersion }}
