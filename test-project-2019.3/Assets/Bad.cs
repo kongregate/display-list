@@ -1,3 +1,2 @@
-public class Bad
-{
+public class Bad {
 }
