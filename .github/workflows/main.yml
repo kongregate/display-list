@@ -36,3 +36,23 @@ jobs:
           unityVersion: ${{ matrix.unityVersion }}
         env:
           UNITY_LICENSE: ${{ secrets[matrix.licenseSecret] }}
+
+  checkFormatting:
+    name: Check Code Formatting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.403
+
+      - name: Problem Matcher for dotnet-format
+        uses: xt0rted/dotnet-format-problem-matcher@v1.2.0
+
+      - run: dotnet tool install -g dotnet-format
+      - run: dotnet format . --folder --check --exclude test-project-2018.4\Library --exclude test-project-2019.3\Library
