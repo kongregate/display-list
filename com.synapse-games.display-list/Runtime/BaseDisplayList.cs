@@ -11,7 +11,8 @@ namespace DisplayList
 
         private List<Transform> _rawElements = new List<Transform>();
 
-        public Transform Root {
+        public Transform Root
+        {
             get { return _root; }
         }
 
