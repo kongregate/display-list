@@ -55,4 +55,4 @@ jobs:
         uses: xt0rted/dotnet-format-problem-matcher@v1.2.0
 
       - run: dotnet tool install -g dotnet-format
-      - run: dotnet-format com.synapse-games.display-list --folder --check
+      - run: dotnet format . --folder --check --exclude test-project-2018.4\Library --exclude test-project-2019.3\Library
